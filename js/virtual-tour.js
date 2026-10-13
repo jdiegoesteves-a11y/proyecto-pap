@@ -381,7 +381,7 @@ class GoogleStreetViewEngine {
 
   renderPOIs(room) {
     this.hotspotsLayer.innerHTML = '';
-    if (!room.hotspots || !room.hotspots.length) return;
+    return; // POIs desactivados
 
     room.hotspots.forEach(hs => {
       const el = document.createElement('div');

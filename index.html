@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Residencial Arcos | Google Street View Tour</title>
+  <meta name="description" content="Recorrido virtual interactivo estilo Google Street View de Residencial Arcos con máxima fidelidad visual, flechas de paso en el piso y minimapa interactivo.">
+  <meta name="theme-color" content="#1a73e8">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Residencial Arcos - Google Street View Tour">
+  <meta property="og:description" content="Recorrido interactivo con máxima nitidez, flechas en el piso y minimapa en tiempo real.">
+  <meta property="og:image" content="assets/01_fachada_acceso.jpg">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="app-container">
+
+    <!-- Viewport Google Street View (Stage de alta fidelidad fotográfica sin distorsión esférica) -->
+    <div id="tour-canvas-container"></div>
+
+    <!-- Capa de Hotspots POI estilo Google Maps -->
+    <div id="hotspots-layer"></div>
+
+    <!-- Capa de Flechas de Paso en el Piso estilo Google Street View -->
+    <div id="navlinks-layer"></div>
+
+    <!-- Tarjeta de Búsqueda y Ubicación Google Maps (Top Bar) -->
+    <header id="top-nav-bar">
+      <div class="google-maps-search-card">
+        <button id="btn-streetview-back" class="gm-back-btn" title="Volver a la estancia anterior">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div class="gm-location-meta">
+          <h1 class="gm-title">Residencial Arcos</h1>
+          <div class="gm-subtitle">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span id="hud-room-title">Fachada Principal</span>
+            <span style="color: #5f6368; font-weight: 400;">&bull; Street View</span>
+          </div>
+          <span class="gm-address">Privada Los Cedros #104 &bull; Prototipo Roble</span>
+        </div>
+      </div>
+
+      <div class="top-actions-group">
+        <button id="btn-guided-tour" class="gm-action-pill primary" title="Iniciar Recorrido Automático">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Tour Guiado</span>
+        </button>
+
+        <button id="btn-view-floorplan" class="gm-action-pill" title="Ver Plano Arquitectónico Completo">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span>Plano 2D</span>
+        </button>
+
+        <button id="btn-specs-sheet" class="gm-action-pill" title="Ficha Técnica y Acabados">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span>Ficha Técnica</span>
+        </button>
+
+        <button id="btn-ambient-audio" class="gm-action-pill" title="Sonido Ambiental Armónico">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <span>Audio</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Brújula Google Maps (Top Right) -->
+    <div id="compass-widget">
+      <button class="gm-compass-btn" title="Centrar Vista Norte">
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <polygon points="12,3 16,12 12,9.5 8,12" fill="#ea4335" />
+          <polygon points="12,21 8,12 12,14.5 16,12" fill="#bdc1c6" />
+          <circle cx="12" cy="12" r="1.5" fill="#ffffff" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Banner Flotante para Recorrido Guiado Automático -->
+    <div id="guided-tour-banner">
+      <div class="tour-banner-header">
+        <div class="tour-status-tag">
+          <span class="tour-status-dot"></span>
+          <span>Street View en Recorrido Automático</span>
+        </div>
+        <span id="tour-step-counter">1 / 9</span>
+      </div>
+      <p id="tour-step-caption">Bienvenido a Residencial Arcos...</p>
+      <div class="tour-progress-track">
+        <div id="tour-step-progressbar"></div>
+      </div>
+    </div>
+
+    <!-- Barra de Miniaturas (Google Street View Strip) -->
+    <div id="thumbnail-bar-container">
+      <div class="thumbnail-filters">
+        <button class="filter-pill active" data-filter="all">Todas las Fotos</button>
+        <button class="filter-pill" data-filter="exterior">Exteriores</button>
+        <button class="filter-pill" data-filter="social">Área Social</button>
+        <button class="filter-pill" data-filter="privado">Zona Privada</button>
+      </div>
+      <div class="thumbnail-scroller">
+        <div id="thumbnail-track"></div>
+      </div>
+    </div>
+
+    <!-- Minimapa Google Maps (Plano Arquitectónico con Radar y Pegman) -->
+    <aside id="minimap-wrapper">
+      <div class="minimap-header">
+        <div class="minimap-title-wrap">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="#1a73e8">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span>Mapa de Distribución</span>
+        </div>
+        <div class="minimap-actions">
+          <button id="btn-toggle-minimap" class="minimap-ctrl-btn" title="Expandir/Contraer Plano">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="minimap-body">
+        <img id="minimap-blueprint-img" src="assets/04_plano_arquitectonico.jpg" alt="Plano de Planta">
+        <canvas id="minimap-radar-canvas"></canvas>
+        <div id="minimap-pins-layer"></div>
+      </div>
+    </aside>
+
+    <!-- Controles Verticales Google Maps (Zoom +, Zoom -, Fullscreen, Ayuda) -->
+    <nav id="floating-hud-controls">
+      <button id="btn-zoom-in" class="hud-btn" title="Acercar (+)" aria-label="Acercar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <button id="btn-zoom-out" class="hud-btn" title="Alejar (-)" aria-label="Alejar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <button id="btn-reset-view" class="hud-btn" title="Centrar Imagen" aria-label="Centrar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9"></circle>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+
+      <button id="btn-fullscreen" class="hud-btn" title="Pantalla Completa" aria-label="Pantalla Completa">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+
+      <button id="btn-help-controls" class="hud-btn" title="Atajos de Navegación" aria-label="Ayuda">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Modal de Detalle de Hotspot POI estilo Ficha Google Maps -->
+  <div id="hotspot-detail-modal" class="app-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span id="modal-hs-badge" class="hs-detail-header-badge">Acabado Arquitectónico</span>
+        <button class="modal-close-btn" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3 id="modal-hs-title" class="hs-detail-title">Material</h3>
+        <p id="modal-hs-desc" class="hs-detail-desc">Descripción detallada.</p>
+        
+        <table class="specs-table">
+          <tbody id="modal-hs-specs-body"></tbody>
+        </table>
+
+        <div class="modal-footer-actions">
+          <button id="modal-hs-focus-btn" class="gm-action-pill primary">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Hacer Zoom en este Detalle</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Plano Cenital Completo -->
+  <div id="floorplan-modal" class="app-modal">
+    <div class="modal-dialog floorplan-modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Planta Arquitectónica General &bull; Prototipo Roble</h3>
+        <button class="modal-close-btn" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="floorplan-viewer-container">
+          <img src="assets/04_plano_arquitectonico.jpg" alt="Plano Arquitectónico Detallado">
+        </div>
+        <p style="font-size: 12px; color: #5f6368; text-align: center; margin-top: 12px;">
+          Haz clic en cualquier área para navegar directamente con Street View:
+        </p>
+        <div class="floorplan-quick-nav-bar">
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('fachada'); document.getElementById('floorplan-modal').classList.remove('open');">Fachada y Acceso</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('jardin_ventana'); document.getElementById('floorplan-modal').classList.remove('open');">Jardín y Ventanal</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('andador_huellas'); document.getElementById('floorplan-modal').classList.remove('open');">Andador de Concreto</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('social_amplio'); document.getElementById('floorplan-modal').classList.remove('open');">Espacio Social Abierto</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('sala'); document.getElementById('floorplan-modal').classList.remove('open');">Sala de Estar</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('comedor_cocina'); document.getElementById('floorplan-modal').classList.remove('open');">Comedor y Cocina</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('acceso_recamara'); document.getElementById('floorplan-modal').classList.remove('open');">Distribuidor</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('recamara_principal'); document.getElementById('floorplan-modal').classList.remove('open');">Recámara Principal</button>
+          <button class="floorplan-nav-chip" onclick="tour.loadRoom('bano'); document.getElementById('floorplan-modal').classList.remove('open');">Baño Completo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Ficha Técnica -->
+  <aside id="specs-drawer" class="drawer-panel">
+    <div class="modal-header">
+      <h3 class="modal-title">Ficha Técnica Oficial</h3>
+      <button class="modal-close-btn" aria-label="Cerrar ficha">&times;</button>
+    </div>
+    <div class="drawer-content">
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-num">72.40 m²</div>
+          <div class="stat-lbl">Construcción Habitable</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">105.00 m²</div>
+          <div class="stat-lbl">Terreno (7 m x 15 m)</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">2</div>
+          <div class="stat-lbl">Recámaras con Clóset</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">1</div>
+          <div class="stat-lbl">Baño Completo Spa</div>
+        </div>
+      </div>
+
+      <h4 class="specs-section-title">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1a73e8" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Especificaciones Constructivas
+      </h4>
+
+      <ul class="features-list">
+        <li class="feature-item">
+          <div class="feature-item-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          </div>
+          <div class="feature-item-text">
+            <h5>Estructura Sismorresistente</h5>
+            <p>Muros de tabique macizo con castillos ahogados y losa aligerada.</p>
+          </div>
+        </li>
+
+        <li class="feature-item">
+          <div class="feature-item-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="feature-item-text">
+            <h5>Cubiertas de Granito Natural</h5>
+            <p>Granito gris mara pulido de 20 mm con tarja bajo cubierta calibre 18.</p>
+          </div>
+        </li>
+
+        <li class="feature-item">
+          <div class="feature-item-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+            </svg>
+          </div>
+          <div class="feature-item-text">
+            <h5>Pisos Porcelánicos 60x60</h5>
+            <p>Pisos rectificados de alta durabilidad con acabado satinado antideslizante.</p>
+          </div>
+        </li>
+
+        <li class="feature-item">
+          <div class="feature-item-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+            </svg>
+          </div>
+          <div class="feature-item-text">
+            <h5>Ecotecnologías Integradas</h5>
+            <p>Preparación para calentador solar, sanitarios de doble descarga e iluminación LED.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div style="margin-top: 24px;">
+        <button class="gm-action-pill primary" style="width: 100%; justify-content: center; padding: 12px;" onclick="tour.toggleAutoTour(); document.getElementById('specs-drawer').classList.remove('open');">
+          Iniciar Recorrido Automático
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Modal de Guía de Navegación -->
+  <div id="help-modal" class="app-modal">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Controles de Google Street View</h3>
+        <button class="modal-close-btn" aria-label="Cerrar ayuda">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="specs-table">
+          <tbody>
+            <tr>
+              <th class="spec-label">Mover la Vista</th>
+              <td class="spec-value">Clic izquierdo y arrastrar con el ratón / Táctil en pantalla</td>
+            </tr>
+            <tr>
+              <th class="spec-label">Zoom In / Out</th>
+              <td class="spec-value">Rueda del ratón / Teclas + y - / Botones laterales</td>
+            </tr>
+            <tr>
+              <th class="spec-label">Caminar hacia otra habitación</th>
+              <td class="spec-value">Clic en las flechas blancas circulares en el suelo</td>
+            </tr>
+            <tr>
+              <th class="spec-label">Puntos de Interés (POI)</th>
+              <td class="spec-value">Clic en los pines rojos para ver detalles de materiales</td>
+            </tr>
+            <tr>
+              <th class="spec-label">Minimapa</th>
+              <td class="spec-value">Clic en cualquier cuarto del plano en la esquina inferior</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="js/tour-data.js"></script>
+  <script src="js/virtual-tour.js"></script>
+
+</body>
+</html>

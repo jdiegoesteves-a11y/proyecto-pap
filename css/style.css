@@ -1,0 +1,1166 @@
+/* ==========================================================================
+   RESIDENCIAL ARCOS - GOOGLE MAPS STREET VIEW STYLES
+   Estética oficial de Google Maps / Street View: cero distorsión,
+   flechas de paso en el piso, pines POI y máxima nitidez fotográfica.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --gm-blue: #1a73e8;
+  --gm-blue-hover: #1557b0;
+  --gm-red: #ea4335;
+  --gm-yellow: #fbbc04;
+  --gm-green: #34a853;
+  --gm-surface: #ffffff;
+  --gm-text: #202124;
+  --gm-text-secondary: #5f6368;
+  --gm-border: #dadce0;
+  --gm-shadow: 0 2px 6px rgba(60, 64, 67, 0.3), 0 1px 2px rgba(60, 64, 67, 0.15);
+  --gm-shadow-hover: 0 4px 12px rgba(60, 64, 67, 0.35);
+  --radius-card: 8px;
+  --radius-full: 9999px;
+  --transition-smooth: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #111111;
+  color: var(--gm-text);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+/* ==========================================================================
+   VIEWPORT PRINCIPAL (Google Street View Stage)
+   ========================================================================== */
+
+#app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #121212;
+}
+
+#tour-canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tour-canvas-container:active {
+  cursor: grabbing;
+}
+
+.streetview-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.streetview-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  pointer-events: none;
+}
+
+.streetview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast;
+  pointer-events: none;
+  user-select: none;
+  background-color: #0a0a0a;
+}
+
+/* ==========================================================================
+   CAPAS DE FLECHAS Y HOTSPOTS (Sincronizadas con Pan & Zoom)
+   ========================================================================== */
+
+#navlinks-layer, #hotspots-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  z-index: 5;
+}
+
+/* Flechas en el piso estilo Google Street View */
+.streetview-ground-arrow {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ground-arrow-disc {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(20, 20, 20, 0.75) 80%);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 255, 255, 0.25);
+  transform: perspective(260px) rotateX(55deg);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ground-chevron {
+  animation: streetview-bob 1.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  transition: transform 0.2s ease;
+}
+
+@keyframes streetview-bob {
+  0% { transform: translateY(2px) scale(0.95); opacity: 0.85; }
+  100% { transform: translateY(-3px) scale(1.1); opacity: 1; }
+}
+
+.ground-arrow-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  animation: ground-expand 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes ground-expand {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.streetview-ground-arrow:hover .ground-arrow-disc {
+  transform: perspective(260px) rotateX(55deg) scale(1.22);
+  background: radial-gradient(circle, rgba(66, 133, 244, 0.85) 0%, rgba(26, 115, 232, 0.9) 80%);
+  border-color: #ffffff;
+  box-shadow: 0 0 30px rgba(66, 133, 244, 0.9), 0 10px 25px rgba(0, 0, 0, 0.8);
+}
+
+.streetview-ground-arrow:active .ground-arrow-disc,
+.streetview-ground-arrow.clicked .ground-arrow-disc {
+  transform: perspective(260px) rotateX(55deg) scale(1.35);
+  background: #ffffff;
+  box-shadow: 0 0 40px #4285f4;
+}
+
+.streetview-step-label {
+  margin-top: 6px;
+  padding: 4px 12px;
+  background: rgba(32, 33, 36, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-full);
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0.88;
+  transition: var(--transition-smooth);
+}
+
+.streetview-ground-arrow:hover .streetview-step-label {
+  opacity: 1;
+  background: #1a73e8;
+  transform: translateY(-2px);
+}
+
+/* Pines de puntos de interés (POIs) estilo Google Maps */
+.streetview-poi-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 12;
+}
+
+.poi-pin-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ea4335;
+  border: 2.5px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  transition: var(--transition-smooth);
+}
+
+.streetview-poi-pin:hover .poi-pin-circle {
+  transform: scale(1.2);
+  background: #1a73e8;
+  box-shadow: 0 0 16px rgba(26, 115, 232, 0.7);
+}
+
+.poi-label-chip {
+  padding: 4px 10px;
+  background: rgba(32, 33, 36, 0.9);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition: var(--transition-smooth);
+  pointer-events: none;
+}
+
+.streetview-poi-pin:hover .poi-label-chip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   GOOGLE MAPS TOP SEARCH & LOCATION CARD
+   ========================================================================== */
+
+#top-nav-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.google-maps-search-card {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--gm-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--gm-shadow);
+  padding: 10px 14px;
+  max-width: 420px;
+  transition: var(--transition-smooth);
+}
+
+.google-maps-search-card:hover {
+  box-shadow: var(--gm-shadow-hover);
+}
+
+.gm-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gm-text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.gm-back-btn:hover {
+  background: rgba(60, 64, 67, 0.08);
+  color: var(--gm-text);
+}
+
+.gm-location-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.gm-title {
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gm-text);
+  line-height: 1.25;
+}
+
+.gm-subtitle {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--gm-blue);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.gm-address {
+  font-size: 11px;
+  color: var(--gm-text-secondary);
+}
+
+.top-actions-group {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gm-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--gm-surface);
+  border-radius: var(--radius-full);
+  box-shadow: var(--gm-shadow);
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--gm-text);
+  transition: var(--transition-smooth);
+}
+
+.gm-action-pill:hover {
+  box-shadow: var(--gm-shadow-hover);
+  background: #f8f9fa;
+  color: var(--gm-blue);
+}
+
+.gm-action-pill.primary {
+  background: var(--gm-blue);
+  color: #ffffff;
+}
+
+.gm-action-pill.primary:hover {
+  background: var(--gm-blue-hover);
+}
+
+/* Brújula de Street View */
+#compass-widget {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.gm-compass-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gm-surface);
+  box-shadow: var(--gm-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.gm-compass-btn:hover {
+  box-shadow: var(--gm-shadow-hover);
+  background: #f8f9fa;
+}
+
+/* ==========================================================================
+   MINIMAPA GOOGLE MAPS (Plano Arquitectónico con Radar y Pegman)
+   ========================================================================== */
+
+#minimap-wrapper {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 220px;
+  height: 240px;
+  background: var(--gm-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--gm-shadow);
+  z-index: 35;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#minimap-wrapper.expanded {
+  width: 320px;
+  height: 440px;
+}
+
+.minimap-header {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gm-border);
+  background: #f8f9fa;
+}
+
+.minimap-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gm-text);
+}
+
+.minimap-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.minimap-ctrl-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--gm-text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.minimap-ctrl-btn:hover {
+  background: rgba(60, 64, 67, 0.08);
+  color: var(--gm-text);
+}
+
+.minimap-body {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #f1f3f4;
+}
+
+#minimap-blueprint-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+#minimap-radar-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#minimap-pins-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.minimap-room-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.pin-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #5f6368;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  transition: var(--transition-smooth);
+}
+
+.minimap-room-pin:hover .pin-dot {
+  transform: scale(1.4);
+  background: var(--gm-yellow);
+  border-color: #202124;
+}
+
+.minimap-room-pin.active .pin-dot {
+  background: #1a73e8;
+  border-color: #ffffff;
+  box-shadow: 0 0 8px rgba(26, 115, 232, 0.9);
+  transform: scale(1.3);
+}
+
+.pin-tooltip {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  background: rgba(32, 33, 36, 0.9);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: var(--transition-smooth);
+}
+
+.minimap-room-pin:hover .pin-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==========================================================================
+   CONTROLES VERTICALES GOOGLE STREET VIEW (Zoom +, -, Fullscreen)
+   ========================================================================== */
+
+#floating-hud-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--gm-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--gm-shadow);
+  overflow: hidden;
+  z-index: 30;
+}
+
+.hud-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gm-text-secondary);
+  border-bottom: 1px solid var(--gm-border);
+  transition: var(--transition-smooth);
+}
+
+.hud-btn:last-child {
+  border-bottom: none;
+}
+
+.hud-btn:hover {
+  background: #f8f9fa;
+  color: var(--gm-text);
+}
+
+/* ==========================================================================
+   CARROUSEL INFERIOR DE FOTOGRAFÍAS (Google Street View Strip)
+   ========================================================================== */
+
+#thumbnail-bar-container {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 260px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.thumbnail-filters {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-pill {
+  padding: 5px 12px;
+  background: rgba(32, 33, 36, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-full);
+  font-family: 'Google Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #ffffff;
+  transition: var(--transition-smooth);
+}
+
+.filter-pill:hover, .filter-pill.active {
+  background: var(--gm-blue);
+  color: #ffffff;
+}
+
+.thumbnail-scroller {
+  pointer-events: auto;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.thumbnail-scroller::-webkit-scrollbar {
+  height: 4px;
+}
+
+.thumbnail-scroller::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+}
+
+#thumbnail-track {
+  display: flex;
+  gap: 10px;
+}
+
+.thumb-card {
+  flex: 0 0 145px;
+  cursor: pointer;
+  background: var(--gm-surface);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+}
+
+.thumb-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.thumb-card.active {
+  box-shadow: 0 0 0 3px var(--gm-blue);
+  transform: translateY(-2px);
+}
+
+.thumb-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 75px;
+  overflow: hidden;
+}
+
+.thumb-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-cat-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px 5px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 3px;
+  font-size: 8.5px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.thumb-info {
+  padding: 6px 8px;
+}
+
+.thumb-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gm-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   BANNER DE RECORRIDO GUIADO AUTOMÁTICO
+   ========================================================================== */
+
+#guided-tour-banner {
+  position: absolute;
+  top: 86px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  opacity: 0;
+  visibility: hidden;
+  width: min(540px, 90vw);
+  background: var(--gm-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--gm-shadow-hover);
+  padding: 14px 18px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+#guided-tour-banner.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tour-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tour-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gm-blue);
+  text-transform: uppercase;
+}
+
+.tour-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gm-blue);
+  animation: blink 1.2s infinite alternate;
+}
+
+@keyframes blink {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+#tour-step-counter {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gm-text-secondary);
+}
+
+#tour-step-caption {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--gm-text);
+  line-height: 1.4;
+}
+
+.tour-progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--gm-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#tour-step-progressbar {
+  height: 100%;
+  width: 0%;
+  background: var(--gm-blue);
+}
+
+/* ==========================================================================
+   MODALES Y DRAWERS (Fichas de Información Estilo Google Maps)
+   ========================================================================== */
+
+.app-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  padding: 20px;
+}
+
+.app-modal.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-dialog {
+  background: var(--gm-surface);
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(15px);
+  transition: transform 0.25s ease;
+}
+
+.app-modal.open .modal-dialog {
+  transform: translateY(0);
+}
+
+.modal-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.modal-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gm-text);
+}
+
+.modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gm-text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.modal-close-btn:hover {
+  background: rgba(60, 64, 67, 0.08);
+  color: var(--gm-text);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.hs-detail-header-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #e8f0fe;
+  color: var(--gm-blue);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.hs-detail-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gm-text);
+  margin-bottom: 10px;
+}
+
+.hs-detail-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--gm-text-secondary);
+  margin-bottom: 18px;
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+}
+
+.specs-table th, .specs-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gm-border);
+  font-size: 12.5px;
+}
+
+.spec-label {
+  text-align: left;
+  color: var(--gm-text-secondary);
+  font-weight: 500;
+  width: 40%;
+}
+
+.spec-value {
+  color: var(--gm-text);
+  font-weight: 500;
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Modal Plano Cenital */
+.floorplan-modal-dialog {
+  max-width: 850px;
+}
+
+.floorplan-viewer-container {
+  position: relative;
+  width: 100%;
+  max-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f4;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  padding: 12px;
+}
+
+.floorplan-viewer-container img {
+  max-width: 100%;
+  max-height: 56vh;
+  object-fit: contain;
+}
+
+.floorplan-quick-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: center;
+}
+
+.floorplan-nav-chip {
+  padding: 7px 14px;
+  background: #f1f3f4;
+  border: 1px solid var(--gm-border);
+  border-radius: var(--radius-full);
+  font-family: 'Google Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gm-text);
+  transition: var(--transition-smooth);
+}
+
+.floorplan-nav-chip:hover {
+  background: var(--gm-blue);
+  color: #ffffff;
+  border-color: var(--gm-blue);
+}
+
+/* Drawer Ficha Técnica */
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(420px, 92vw);
+  height: 100vh;
+  background: var(--gm-surface);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.4);
+  z-index: 110;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-panel.open {
+  transform: translateX(0);
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.stat-box {
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid var(--gm-border);
+  border-radius: var(--radius-card);
+}
+
+.stat-num {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gm-blue);
+  margin-bottom: 2px;
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: var(--gm-text-secondary);
+}
+
+.specs-section-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gm-text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.features-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: var(--radius-card);
+}
+
+.feature-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e8f0fe;
+  color: var(--gm-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-item-text h5 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gm-text);
+  margin-bottom: 2px;
+}
+
+.feature-item-text p {
+  font-size: 11.5px;
+  color: var(--gm-text-secondary);
+}
+
+/* ==========================================================================
+   RESPONSIVIDAD MÓVIL
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  #top-nav-bar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .google-maps-search-card {
+    padding: 8px 10px;
+    max-width: 280px;
+  }
+
+  .gm-address {
+    display: none;
+  }
+
+  .gm-action-pill span {
+    display: none;
+  }
+
+  .gm-action-pill {
+    padding: 8px;
+  }
+
+  #thumbnail-bar-container {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .thumb-card {
+    flex: 0 0 120px;
+  }
+
+  .thumb-img-wrap {
+    height: 65px;
+  }
+
+  #minimap-wrapper {
+    bottom: auto;
+    top: 72px;
+    right: 10px;
+    width: 130px;
+    height: 150px;
+  }
+
+  #minimap-wrapper.expanded {
+    width: 250px;
+    height: 300px;
+  }
+
+  #floating-hud-controls {
+    right: 10px;
+    bottom: 170px;
+  }
+}

@@ -584,6 +584,13 @@ const TOUR_DATA = {
           label: "Entrar a Recámara Principal"
         },
         {
+          targetId: "recamara_secundaria",
+          x: 78,
+          y: 75,
+          rotation: 40,
+          label: "Entrar a Recámara Juvenil"
+        },
+        {
           targetId: "bano",
           x: 75,
           y: 68,
@@ -646,6 +653,13 @@ const TOUR_DATA = {
           y: 90,
           rotation: 180,
           label: "Salir al Pasillo"
+        },
+        {
+          targetId: "recamara_secundaria",
+          x: 70,
+          y: 85,
+          rotation: 60,
+          label: "Ir a Recámara Juvenil"
         },
         {
           targetId: "bano",
@@ -738,6 +752,13 @@ const TOUR_DATA = {
           y: 92,
           rotation: -90,
           label: "Ir a Recámara Principal"
+        },
+        {
+          targetId: "recamara_secundaria",
+          x: 70,
+          y: 88,
+          rotation: 0,
+          label: "Ir a Recámara Juvenil"
         }
       ],
       hotspots: [
@@ -793,6 +814,99 @@ const TOUR_DATA = {
           description: "Sanitario alargado con asiento de cierre suave y sistema de descarga dual de 3L y 4.8L que ahorra 40% de agua potable al año.",
           specs: {
             "Consumo": "Doble descarga 3L líquidos / 4.8L sólidos"
+          }
+        }
+      ]
+    },
+
+    {
+      id: "recamara_secundaria",
+      title: "Recámara Secundaria (Juvenil)",
+      category: "privado",
+      categoryLabel: "Zona Privada",
+      image: "assets/13_recamara_secundaria.jpg",
+      thumb: "assets/13_recamara_secundaria.jpg",
+      description: "Habitación secundaria o juvenil equipada con cama individual, carpintería integral con módulos suspendidos de roble, muro de acento con panel alistonado acústico y ventanal con luz natural.",
+      mapCoords: { x: 66, y: 24 },
+      defaultPan: { x: 0, y: 0, zoom: 1 },
+      groundArrows: [
+        {
+          targetId: "acceso_recamara",
+          x: 88,
+          y: 88,
+          rotation: 140,
+          label: "Salir al Pasillo"
+        },
+        {
+          targetId: "recamara_principal",
+          x: 20,
+          y: 90,
+          rotation: -130,
+          label: "Ir a Recámara Principal"
+        },
+        {
+          targetId: "bano",
+          x: 55,
+          y: 92,
+          rotation: 180,
+          label: "Ir al Baño"
+        }
+      ],
+      hotspots: [
+        {
+          id: "hs-cama-juvenil",
+          x: 45,
+          y: 70,
+          icon: "moon",
+          title: "Cama Individual de Diseño Contemporáneo",
+          category: "Mobiliario",
+          badge: "Descanso",
+          description: "Base de madera maciza en roble claro con ropa de cama en tonos naturales y colchón ortopédico.",
+          specs: {
+            "Dimensiones": "Individual (1.00 m x 1.90 m)",
+            "Estructura": "Madera maciza estufada"
+          }
+        },
+        {
+          id: "hs-panel-alistonado",
+          x: 50,
+          y: 45,
+          icon: "layers",
+          title: "Muro de Acento Alistonado Acústico",
+          category: "Acabados",
+          badge: "Diseño Interior",
+          description: "Revestimiento vertical de listones de madera sobre base acústica grafito que aporta confort visual y acústico.",
+          specs: {
+            "Material": "Listones de roble sobre base fonoabsorbente",
+            "Acabado": "Tono carbón mate antirreflejo"
+          }
+        },
+        {
+          id: "hs-closet-suspendido",
+          x: 85,
+          y: 35,
+          icon: "package",
+          title: "Clóset Modular y Módulos Suspendidos",
+          category: "Carpintería",
+          badge: "Almacenaje",
+          description: "Ropero integral de piso a techo y gabinetes aéreos en roble natural para máxima capacidad de almacenamiento.",
+          specs: {
+            "Material": "Tablero laminado acabado madera clara",
+            "Herrajes": "Cierre suave y pistones neumáticos superiores"
+          }
+        },
+        {
+          id: "hs-ventana-juvenil",
+          x: 15,
+          y: 40,
+          icon: "sun",
+          title: "Ventana con Persiana Romana",
+          category: "Iluminación",
+          badge: "Confort",
+          description: "Ventana con cristal claro de 6mm y persiana romana plegable que permite un control óptimo de la iluminación natural.",
+          specs: {
+            "Cancelería": "Aluminio línea nacional negro mate",
+            "Control solar": "Persiana romana traslúcida tono beige"
           }
         }
       ]
@@ -867,6 +981,7 @@ const TOUR_DATA = {
     { roomId: "comedor_cocina", duration: 7500, caption: "Cocina integral equipada con barra de granito pulido y estufa en acero inoxidable." },
     { roomId: "acceso_recamara", duration: 6000, caption: "Vestíbulo distribuidor hacia las áreas privadas de descanso." },
     { roomId: "recamara_principal", duration: 8000, caption: "Recámara principal con aire acondicionado, clóset de piso a techo y ventanal al jardín." },
+    { roomId: "recamara_secundaria", duration: 7500, caption: "Segunda recámara o habitación juvenil con clóset de diseño, panel acústico alistonado y luz natural." },
     { roomId: "bano", duration: 7000, caption: "Baño completo de lujo con cancel de cristal templado y regadera de lluvia." }
   ]
 };
